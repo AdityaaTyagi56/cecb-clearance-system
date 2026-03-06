@@ -34,7 +34,7 @@ export async function POST(
     prisma.deficiencyNote.create({
       data: {
         applicationId: params.id,
-        note: parsed.data.note,
+        noteText: parsed.data.note,
         raisedById: session.user.id,
       },
     }),
@@ -46,9 +46,9 @@ export async function POST(
 
   await createAuditLog({
     applicationId: params.id,
-    actorId: session.user.id,
+    performedById: session.user.id,
     action: "DEFICIENCY_RAISED",
-    meta: { note: parsed.data.note },
+    metadata: { note: parsed.data.note },
   });
 
   return NextResponse.json(deficiency, { status: 201 });

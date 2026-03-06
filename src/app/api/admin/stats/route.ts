@@ -19,11 +19,13 @@ export async function GET() {
     prisma.application.count(),
     prisma.application.groupBy({
       by: ["status"],
+      orderBy: { status: "asc" },
       _count: true,
     }),
     prisma.user.count(),
     prisma.user.groupBy({
       by: ["role"],
+      orderBy: { role: "asc" },
       _count: true,
     }),
     prisma.application.count({ where: { feePaid: false, status: { not: ApplicationStatus.DRAFT } } }),

@@ -14,8 +14,8 @@ export async function GET(
     select: {
       id: true,
       feePaid: true,
-      razorpayOrderId: true,
-      razorpayPaymentId: true,
+      paymentOrderId: true,
+      paymentId: true,
       status: true,
     },
   });
@@ -24,7 +24,7 @@ export async function GET(
 
   return NextResponse.json({
     feePaid: application.feePaid,
-    razorpayOrderId: application.razorpayOrderId,
-    razorpayPaymentId: application.razorpayPaymentId,
+    paymentOrderId: application.paymentOrderId,
+    paymentId: application.paymentId,
   });
 }

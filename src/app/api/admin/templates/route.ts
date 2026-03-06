@@ -10,7 +10,7 @@ const schema = z.object({
   content: z.string().min(1),
 });
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const session = await auth();
   if (!session?.user || session.user.role !== Role.ADMIN) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

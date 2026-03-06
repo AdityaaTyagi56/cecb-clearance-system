@@ -37,7 +37,6 @@ export default async function ApplicationDetailPage({
     where: { id: params.id },
     include: {
       proponent: { select: { name: true, email: true } },
-      scrutinyOfficer: { select: { name: true } },
       documents: { orderBy: { createdAt: "asc" } },
       deficiencyNotes: {
         include: { raisedBy: { select: { name: true } } },
@@ -76,7 +75,7 @@ export default async function ApplicationDetailPage({
           </div>
           <h1 className="text-2xl font-bold text-gray-900">{app.projectName}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {app.sector} · {app.category} · {app.district}
+            {app.sector} · {app.category} · {app.districtName ?? "N/A"}
           </p>
         </div>
         <div className="flex gap-2">
@@ -108,11 +107,10 @@ export default async function ApplicationDetailPage({
         {[
           ["Proponent", app.proponent.name],
           ["Email", app.proponent.email],
-          ["Scrutiny Officer", app.scrutinyOfficer?.name ?? "—"],
-          ["Investment", app.investmentAmount ? `₹${app.investmentAmount.toLocaleString("en-IN")}` : "—"],
-          ["Location", [app.village, app.tahsil, app.district].filter(Boolean).join(", ")],
-          ["Survey Numbers", app.surveyNumbers ?? "—"],
-          ["Area", app.projectArea ? `${app.projectArea} ha` : "—"],
+          ["Fee Amount", app.feeAmount ? `₹${app.feeAmount.toLocaleString("en-IN")}` : "—"],
+          ["Location", app.projectLocation ?? "—"],
+          ["Survey Number", app.surveyNumber ?? "—"],
+          ["Area", app.projectAreaHa ? `${app.projectAreaHa} ha` : "—"],
           ["Created", new Date(app.createdAt).toLocaleDateString("en-IN")],
         ].map(([label, value]) => (
           <div key={String(label)}>
@@ -123,10 +121,10 @@ export default async function ApplicationDetailPage({
       </div>
 
       {/* Proposed Activities */}
-      {app.proposedActivities && (
+      {app.projectDescription && (
         <div className="bg-white rounded-lg border p-5 mt-4 text-sm">
-          <h3 className="font-semibold text-gray-800 mb-2">Proposed Activities</h3>
-          <p className="text-gray-700 whitespace-pre-line">{app.proposedActivities}</p>
+          <h3 className="font-semibold text-gray-800 mb-2">Project Description</h3>
+          <p className="text-gray-700 whitespace-pre-line">{app.projectDescription}</p>
         </div>
       )}
 
@@ -137,7 +135,7 @@ export default async function ApplicationDetailPage({
           <div className="space-y-3">
             {app.deficiencyNotes.map((dn) => (
               <div key={dn.id} className="bg-white rounded border border-red-100 p-3">
-                <p className="text-sm text-gray-800">{dn.note}</p>
+                <p className="text-sm text-gray-800">{dn.noteText}</p>
                 <p className="text-xs text-gray-400 mt-1">
                   by {dn.raisedBy.name} on {new Date(dn.createdAt).toLocaleDateString("en-IN")}
                 </p>
@@ -166,10 +164,10 @@ export default async function ApplicationDetailPage({
               <div key={doc.id} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-gray-400">📄</span>
-                  <a href={doc.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                    {doc.name}
+                  <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                    {doc.fileName}
                   </a>
-                  <span className="text-xs text-gray-400">({doc.type})</span>
+                  <span className="text-xs text-gray-400">({doc.documentType})</span>
                 </div>
                 {doc.isVerified ? (
                   <span className="text-xs text-green-600 font-medium">Verified ✓</span>

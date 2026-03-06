@@ -16,6 +16,7 @@ export async function GET(
   });
 
   if (!gist) return NextResponse.json({ error: "Gist not found" }, { status: 404 });
+  const content = gist.editedContent ?? gist.generatedContent;
 
   const doc = new Document({
     sections: [
@@ -41,7 +42,7 @@ export async function GET(
             ],
           }),
           new Paragraph({ text: "" }),
-          ...gist.content.split("\n").map(
+          ...content.split("\n").map(
             (line) => new Paragraph({ children: [new TextRun(line)] })
           ),
         ],
@@ -50,8 +51,9 @@ export async function GET(
   });
 
   const buffer = await Packer.toBuffer(doc);
+  const body = new Uint8Array(buffer);
 
-  return new NextResponse(buffer, {
+  return new NextResponse(body, {
     headers: {
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

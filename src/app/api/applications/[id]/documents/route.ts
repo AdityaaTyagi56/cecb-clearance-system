@@ -6,10 +6,9 @@ import { DocumentType, Role } from "@prisma/client";
 import { z } from "zod";
 
 const createSchema = z.object({
-  name: z.string().min(1),
-  url: z.string().url(),
-  type: z.nativeEnum(DocumentType),
-  fileKey: z.string().min(1),
+  fileName: z.string().min(1),
+  fileUrl: z.string().url(),
+  documentType: z.nativeEnum(DocumentType),
   fileSize: z.number().int().positive(),
   mimeType: z.string().min(1),
 });
@@ -61,9 +60,9 @@ export async function POST(
 
   await createAuditLog({
     applicationId: params.id,
-    actorId: session.user.id,
+    performedById: session.user.id,
     action: "DOCUMENT_UPLOADED",
-    meta: { documentId: doc.id, name: doc.name, type: doc.type },
+    metadata: { documentId: doc.id, fileName: doc.fileName, documentType: doc.documentType },
   });
 
   return NextResponse.json(doc, { status: 201 });
@@ -91,9 +90,9 @@ export async function PATCH(
 
   await createAuditLog({
     applicationId: params.id,
-    actorId: session.user.id,
+    performedById: session.user.id,
     action: parsed.data.verified ? "DOCUMENT_VERIFIED" : "DOCUMENT_REJECTED",
-    meta: { documentId: doc.id },
+    metadata: { documentId: doc.id },
   });
 
   return NextResponse.json(doc);
@@ -122,9 +121,9 @@ export async function DELETE(
 
   await createAuditLog({
     applicationId: params.id,
-    actorId: session.user.id,
+    performedById: session.user.id,
     action: "DOCUMENT_DELETED",
-    meta: { documentId },
+    metadata: { documentId },
   });
 
   return new NextResponse(null, { status: 204 });

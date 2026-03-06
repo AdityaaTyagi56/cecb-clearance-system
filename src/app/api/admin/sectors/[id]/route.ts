@@ -5,8 +5,8 @@ import { Role } from "@prisma/client";
 import { z } from "zod";
 
 const updateSchema = z.object({
-  feeAmount: z.number().int().positive().optional(),
-  currency: z.string().optional(),
+  paramValue: z.string().min(1).optional(),
+  description: z.string().optional(),
 });
 
 export async function PATCH(

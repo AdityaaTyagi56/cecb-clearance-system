@@ -27,14 +27,14 @@ export async function POST(
 
   const updated = await prisma.application.update({
     where: { id: params.id },
-    data: { status: to, scrutinyOfficerId: session.user.id },
+    data: { status: to },
   });
 
   await createAuditLog({
     applicationId: params.id,
-    actorId: session.user.id,
+    performedById: session.user.id,
     action: "STATUS_CHANGED",
-    meta: { from, to },
+    metadata: { from, to },
   });
 
   return NextResponse.json(updated);

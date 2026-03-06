@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
-import { Role, ApplicationStatus } from "@prisma/client";
+import { Role } from "@prisma/client";
 import AuditTimeline from "./AuditTimeline";
 
 export default async function AuditPage({ params }: { params: { id: string } }) {
@@ -15,10 +15,21 @@ export default async function AuditPage({ params }: { params: { id: string } }) 
     }),
     prisma.auditLog.findMany({
       where: { applicationId: params.id },
-      include: { actor: { select: { name: true, role: true } } },
+      include: { performedBy: { select: { name: true, role: true } } },
       orderBy: { createdAt: "asc" },
     }),
   ]);
+
+  const timelineLogs = logs.map((log) => ({
+    id: log.id,
+    action: log.action,
+    meta: (log.metadata as Record<string, unknown> | null) ?? null,
+    createdAt: log.createdAt.toISOString(),
+    actor: {
+      name: log.performedBy.name,
+      role: log.performedBy.role,
+    },
+  }));
 
   if (!app) notFound();
   if (session.user.role === Role.PROPONENT && app.proponentId !== session.user.id) {
@@ -29,7 +40,7 @@ export default async function AuditPage({ params }: { params: { id: string } }) 
     <div className="p-6 max-w-2xl mx-auto">
       <h1 className="text-xl font-bold text-gray-900 mb-1">Audit Trail</h1>
       <p className="text-sm text-gray-500 mb-6">{app.applicationNumber} · {app.projectName}</p>
-      <AuditTimeline logs={logs} />
+      <AuditTimeline logs={timelineLogs} />
     </div>
   );
 }

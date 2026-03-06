@@ -11,7 +11,7 @@ export async function GET(
 
   const rows = await prisma.auditLog.findMany({
     where: { applicationId: params.id },
-    include: { actor: { select: { name: true, email: true, role: true } } },
+    include: { performedBy: { select: { name: true, email: true, role: true } } },
     orderBy: { createdAt: "asc" },
   });
 

@@ -3,8 +3,8 @@
 interface AuditEntry {
   id: string;
   action: string;
-  meta: unknown;
-  createdAt: Date;
+  meta: Record<string, unknown> | null;
+  createdAt: string;
   actor: { name: string; role: string };
 }
 
@@ -15,7 +15,10 @@ export default function AuditTimeline({ logs }: { logs: AuditEntry[] }) {
 
   return (
     <div className="relative pl-4 border-l-2 border-gray-200 space-y-6">
-      {logs.map((log) => (
+      {logs.map((log) => {
+        const hasMeta = !!log.meta && Object.keys(log.meta).length > 0;
+
+        return (
         <div key={log.id} className="relative">
           <div className="absolute -left-[21px] top-1 w-4 h-4 bg-white border-2 border-green-500 rounded-full" />
           <div className="bg-white rounded-lg border p-4 text-sm">
@@ -28,14 +31,15 @@ export default function AuditTimeline({ logs }: { logs: AuditEntry[] }) {
             <p className="text-gray-500 text-xs">
               by <span className="font-medium">{log.actor.name}</span> ({log.actor.role})
             </p>
-            {log.meta && Object.keys(log.meta as object).length > 0 && (
+            {hasMeta && (
               <pre className="mt-2 bg-gray-50 rounded p-2 text-xs text-gray-600 overflow-x-auto">
                 {JSON.stringify(log.meta, null, 2)}
               </pre>
             )}
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 // lib/audit.ts — Helper to write audit log entries
 
 import { prisma } from "./prisma";
-import type { ApplicationStatus } from "@prisma/client";
+import type { ApplicationStatus, Prisma } from "@prisma/client";
 
 interface CreateAuditLogParams {
   applicationId: string;
@@ -9,7 +9,7 @@ interface CreateAuditLogParams {
   action: string;
   fromStatus?: ApplicationStatus;
   toStatus?: ApplicationStatus;
-  metadata?: Record<string, unknown>;
+  metadata?: Prisma.InputJsonValue;
 }
 
 export async function createAuditLog(params: CreateAuditLogParams) {

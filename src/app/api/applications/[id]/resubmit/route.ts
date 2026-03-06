@@ -38,9 +38,9 @@ export async function POST(
 
   await createAuditLog({
     applicationId: params.id,
-    actorId: session.user.id,
+    performedById: session.user.id,
     action: "STATUS_CHANGED",
-    meta: { from, to, reason: "Resubmitted after deficiency resolution" },
+    metadata: { from, to, reason: "Resubmitted after deficiency resolution" },
   });
 
   return NextResponse.json(updated);

@@ -4,7 +4,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { razorpay } from "@/lib/razorpay";
+import { getRazorpayClient } from "@/lib/razorpay";
 
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -29,6 +29,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   const amountInPaise = Math.round((feeParam ? Number(feeParam.paramValue) : 10000) * 100);
 
+  const razorpay = getRazorpayClient();
   const order = await razorpay.orders.create({
     amount: amountInPaise,
     currency: "INR",

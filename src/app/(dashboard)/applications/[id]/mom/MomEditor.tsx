@@ -6,9 +6,9 @@ import { Role } from "@prisma/client";
 
 interface Gist {
   id: string;
-  content: string;
+  generatedContent: string;
+  editedContent: string | null;
   isLocked: boolean;
-  version: number;
 }
 
 interface Props {
@@ -19,7 +19,7 @@ interface Props {
 
 export default function MomEditor({ applicationId, gist, userRole }: Props) {
   const router = useRouter();
-  const [content, setContent] = useState(gist.content);
+  const [content, setContent] = useState(gist.editedContent ?? gist.generatedContent);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -32,7 +32,7 @@ export default function MomEditor({ applicationId, gist, userRole }: Props) {
       const res = await fetch(`/api/applications/${applicationId}/gist`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ editedContent: content }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -63,7 +63,7 @@ export default function MomEditor({ applicationId, gist, userRole }: Props) {
       <div className="bg-white rounded-lg border">
         <div className="flex items-center justify-between px-5 py-3 border-b">
           <div className="text-sm text-gray-500">
-            Version {gist.version} {gist.isLocked ? "· Locked" : canEdit ? "· Editing" : "· Read-only"}
+            {gist.isLocked ? "Locked" : canEdit ? "Editing" : "Read-only"}
           </div>
           <div className="flex gap-2">
             <a

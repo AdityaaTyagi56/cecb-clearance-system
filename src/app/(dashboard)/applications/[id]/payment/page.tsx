@@ -22,7 +22,7 @@ export default async function PaymentPage({ params }: { params: { id: string } }
   }
 
   const sectorParam = await prisma.sectorParameter.findUnique({
-    where: { sector: app.sector },
+    where: { sector_paramKey: { sector: app.sector, paramKey: "application_fee" } },
   });
 
   return (
@@ -34,9 +34,9 @@ export default async function PaymentPage({ params }: { params: { id: string } }
         applicationId={app.id}
         status={app.status}
         feePaid={app.feePaid}
-        razorpayOrderId={app.razorpayOrderId}
+        razorpayOrderId={app.paymentOrderId}
         razorpayKeyId={process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ?? ""}
-        feeAmount={sectorParam?.feeAmount ?? null}
+        feeAmount={sectorParam ? Number(sectorParam.paramValue) * 100 : null}
         projectName={app.projectName}
         userEmail={app.proponent.email}
         userName={app.proponent.name}
