@@ -1,0 +1,185 @@
+// CECB Environmental Clearance System — Prisma Schema (PRD Section 4)
+// Run: npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  PROPONENT
+  SCRUTINY
+  MOM_TEAM
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_SCRUTINY
+  ESSENTIAL_DOC_SOUGHT
+  REFERRED
+  MOM_GENERATED
+  FINALIZED
+}
+
+enum DocumentType {
+  EC_FORM
+  NOC
+  LAND_CLEARANCE
+  ENVIRONMENTAL_IMPACT_ASSESSMENT
+  PUBLIC_HEARING_RECORD
+  FOREST_CLEARANCE
+  CONSENT_TO_ESTABLISH
+  OTHER
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(PROPONENT)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  applications Application[]    @relation("ProponentApplications")
+  documents    Document[]       @relation("UploaderDocuments")
+  deficiencies DeficiencyNote[] @relation("ScrutinyDeficiencies")
+  auditLogs    AuditLog[]       @relation("UserAuditLogs")
+  momLocks     MeetingGist[]    @relation("MomLocker")
+}
+
+model Application {
+  id                String @id @default(cuid())
+  applicationNumber String @unique
+  proponentId       String
+  proponent         User   @relation("ProponentApplications", fields: [proponentId], references: [id])
+
+  // Project Details
+  projectName        String
+  projectDescription String?  @db.Text
+  sector             String
+  category           String
+  projectLocation    String?
+  surveyNumber       String?
+  districtName       String?
+  stateName          String   @default("Chhattisgarh")
+  projectAreaHa      Float?
+
+  // Workflow Status
+  status ApplicationStatus @default(DRAFT)
+
+  // Payment
+  feeAmount      Float?
+  feePaid        Boolean   @default(false)
+  paymentId      String?
+  paymentOrderId String?
+  paymentDate    DateTime?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  submittedAt DateTime?
+
+  documents       Document[]
+  deficiencyNotes DeficiencyNote[]
+  meetingGist     MeetingGist?
+  auditLogs       AuditLog[]
+}
+
+model Document {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id])
+  uploadedById  String
+  uploadedBy    User        @relation("UploaderDocuments", fields: [uploadedById], references: [id])
+
+  documentType DocumentType
+  fileName     String
+  fileUrl      String
+  fileSize     Int?
+  mimeType     String?
+  isVerified   Boolean      @default(false)
+  verifiedAt   DateTime?
+  verifiedById String?
+  isMandatory  Boolean      @default(true)
+  notes        String?
+  createdAt    DateTime     @default(now())
+}
+
+model DeficiencyNote {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id])
+  raisedById    String
+  raisedBy      User        @relation("ScrutinyDeficiencies", fields: [raisedById], references: [id])
+
+  noteText     String        @db.Text
+  documentType DocumentType?
+  isResolved   Boolean       @default(false)
+  resolvedAt   DateTime?
+  createdAt    DateTime      @default(now())
+}
+
+model MeetingGist {
+  id            String      @id @default(cuid())
+  applicationId String      @unique
+  application   Application @relation(fields: [applicationId], references: [id])
+
+  generatedContent String    @db.Text
+  editedContent    String?   @db.Text
+  isLocked         Boolean   @default(false)
+  lockedAt         DateTime?
+  lockedById       String?
+  lockedBy         User?     @relation("MomLocker", fields: [lockedById], references: [id])
+
+  wordExportUrl String?
+  pdfExportUrl  String?
+  generatedAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model AuditLog {
+  id            String            @id @default(cuid())
+  applicationId String
+  application   Application       @relation(fields: [applicationId], references: [id])
+  performedById String
+  performedBy   User              @relation("UserAuditLogs", fields: [performedById], references: [id])
+
+  action     String
+  fromStatus ApplicationStatus?
+  toStatus   ApplicationStatus?
+  metadata   Json?
+  createdAt  DateTime           @default(now())
+}
+
+model MasterTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  sector    String
+  content   String   @db.Text
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SectorParameter {
+  id          String   @id @default(cuid())
+  sector      String
+  paramKey    String
+  paramValue  String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([sector, paramKey])
+}
