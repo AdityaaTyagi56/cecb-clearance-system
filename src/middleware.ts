@@ -17,13 +17,13 @@ export default auth((req: NextRequest & { auth: { user?: { role?: string } } | n
   const session = req.auth;
 
   // Public routes — always allow
-  if (pathname === "/" || pathname === "/register") {
+  if (pathname === "/" || pathname === "/login" || pathname === "/register") {
     return NextResponse.next();
   }
 
   // Redirect unauthenticated users to login
   if (!session?.user) {
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   const userRole = session.user.role;
