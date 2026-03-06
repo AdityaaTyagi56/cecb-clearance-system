@@ -12,7 +12,6 @@ export default async function PaymentPage({ params }: { params: { id: string } }
     where: { id: params.id },
     include: {
       proponent: { select: { name: true, email: true } },
-      sector: false,
     },
   });
 

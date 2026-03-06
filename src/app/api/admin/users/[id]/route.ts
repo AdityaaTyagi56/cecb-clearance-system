@@ -3,7 +3,6 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
 import { z } from "zod";
-import bcrypt from "bcryptjs";
 
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
